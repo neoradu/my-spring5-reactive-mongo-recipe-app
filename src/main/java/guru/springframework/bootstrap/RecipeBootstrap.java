@@ -6,6 +6,8 @@ import guru.springframework.repositories.RecipeRepository;
 import guru.springframework.repositories.UnitOfMeasureRepository;
 import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -49,7 +51,25 @@ public class RecipeBootstrap implements ApplicationListener<ContextRefreshedEven
 
 
         log.error("#######");
-        log.error("Count: " + reactiveRepository.count());
+        /*https://medium.com/@cheron.antoine/reactor-java-1-how-to-create-mono-and-flux-471c505fa158
+         *  Mono<Long>
+         * A Reactive Streams Publisher with basic rx operators that completes
+         * successfully by emitting an element, or with an error.
+         * Mono and Flux are both reactive streams. They differ in what they express.
+         * A Mono is a stream of 0 to 1 element, whereas a Flux is a stream of 0 to N elements.
+         * 
+         * Mono and Flux are lazy
+		 * Being lazy is one of the properties of a reactive stream. 
+		 * It means that whatever the number of function call you make on the stream,
+		 * they won’t be executed until you consume it.
+         * */
+        Mono<Long> entitiesNumberMono = reactiveRepository.count();
+        /*entitiesNumberMono.block()
+         * Subscribe to this Mono and block indefinitely until a next signal is received.
+         * Returns that value, or null if the Mono completes empty. 
+         * In case the Mono errors, the original exception is thrown 
+         * (wrapped in a RuntimeException if it was a checked exception).*/
+        log.error("Count: " + entitiesNumberMono.block());
     }
 
     private void loadCategories(){
