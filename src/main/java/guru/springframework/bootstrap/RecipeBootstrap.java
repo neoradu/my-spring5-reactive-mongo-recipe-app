@@ -4,6 +4,8 @@ import guru.springframework.domain.*;
 import guru.springframework.repositories.CategoryRepository;
 import guru.springframework.repositories.RecipeRepository;
 import guru.springframework.repositories.UnitOfMeasureRepository;
+import guru.springframework.repositories.reactive.CategoryReactiveRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -31,7 +33,11 @@ public class RecipeBootstrap implements ApplicationListener<ContextRefreshedEven
     private final UnitOfMeasureRepository unitOfMeasureRepository;
 
     @Autowired
-    UnitOfMeasureReactiveRepository reactiveRepository;
+    UnitOfMeasureReactiveRepository reactiveUomRepository;
+    @Autowired
+    RecipeReactiveRepository reactiveRecipeRepository;
+    @Autowired
+    CategoryReactiveRepository reactiveCategoryRepository;
 
     public RecipeBootstrap(CategoryRepository categoryRepository,
                            RecipeRepository recipeRepository, UnitOfMeasureRepository unitOfMeasureRepository) {
@@ -63,14 +69,43 @@ public class RecipeBootstrap implements ApplicationListener<ContextRefreshedEven
 		 * It means that whatever the number of function call you make on the stream,
 		 * they won’t be executed until you consume it.
          * */
-        Mono<Long> entitiesNumberMono = reactiveRepository.count();
+        log.error("UomCntMono created!");
+        Mono<Long> UomNumberMono = reactiveUomRepository.count();
         /*entitiesNumberMono.block()
          * Subscribe to this Mono and block indefinitely until a next signal is received.
          * Returns that value, or null if the Mono completes empty. 
          * In case the Mono errors, the original exception is thrown 
          * (wrapped in a RuntimeException if it was a checked exception).*/
-        log.error("Count: " + entitiesNumberMono.block());
+        
+        log.error("UomCntMono subscribed with block()!");
+        log.error("reactiveUomRepository Count: " + UomNumberMono.block());
+        log.error("UomCntMono after block()!");
+        
+        Mono<Long> recipesCntMono = reactiveRecipeRepository.count();
+        log.error("recipesCntMono created!");
+        Mono<Long> categoriesCntMono = reactiveCategoryRepository.count();
+        log.error("categoriesCntMono created!");
+        
+        
+        log.error("Subscribing: recipesCntMono!");
+        recipesCntMono.subscribe(this::resultHandler,this::errorHandler, this::endHandler);
+        
+        log.error("Subscribing: categoriesCntMono!");
+        categoriesCntMono.subscribe(this::resultHandler,this::errorHandler, this::endHandler);
     }
+    
+    private void resultHandler(Long count) {
+    	log.error("resultHandler: Count:"  + count);
+    }
+    
+    private void errorHandler(Throwable t) {
+    	log.error("errorHandler:" + t.toString());
+    }
+    
+    private void endHandler() {
+    	log.error("endHandler:");
+    }
+    
 
     private void loadCategories(){
         Category cat1 = new Category();
