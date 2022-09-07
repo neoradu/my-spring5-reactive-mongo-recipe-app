@@ -7,6 +7,7 @@ import guru.springframework.services.IngredientService;
 import guru.springframework.services.RecipeService;
 import guru.springframework.services.UnitOfMeasureService;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -69,7 +70,8 @@ public class IngredientControllerTest {
         IngredientCommand ingredientCommand = new IngredientCommand();
 
         //when
-        when(ingredientService.findByRecipeIdAndIngredientId(anyString(), anyString())).thenReturn(ingredientCommand);
+        when(ingredientService.findByRecipeIdAndIngredientId(anyString(), anyString()))
+                              .thenReturn(Mono.just(ingredientCommand));
 
         //then
         mockMvc.perform(get("/recipe/1/ingredient/2/show"))
@@ -105,7 +107,7 @@ public class IngredientControllerTest {
         IngredientCommand ingredientCommand = new IngredientCommand();
 
         //when
-        when(ingredientService.findByRecipeIdAndIngredientId(anyString(), anyString())).thenReturn(ingredientCommand);
+        when(ingredientService.findByRecipeIdAndIngredientId(anyString(), anyString())).thenReturn(Mono.just(ingredientCommand));
         when(unitOfMeasureService.listAllUoms()).thenReturn((Flux.just()));
 
         //then
@@ -124,7 +126,7 @@ public class IngredientControllerTest {
         command.setRecipeId("2");
 
         //when
-        when(ingredientService.saveIngredientCommand(any())).thenReturn(command);
+        when(ingredientService.saveIngredientCommand(any())).thenReturn(Mono.just(command));
 
         //then
         mockMvc.perform(post("/recipe/2/ingredient")
