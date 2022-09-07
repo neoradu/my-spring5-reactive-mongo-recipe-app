@@ -3,6 +3,9 @@ package guru.springframework.services;
 import guru.springframework.commands.UnitOfMeasureCommand;
 import guru.springframework.converters.UnitOfMeasureToUnitOfMeasureCommand;
 import guru.springframework.repositories.UnitOfMeasureRepository;
+import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
+import reactor.core.publisher.Flux;
+
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -15,20 +18,30 @@ import java.util.stream.StreamSupport;
 @Service
 public class UnitOfMeasureServiceImpl implements UnitOfMeasureService {
 
-    private final UnitOfMeasureRepository unitOfMeasureRepository;
+    private final UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository;
     private final UnitOfMeasureToUnitOfMeasureCommand unitOfMeasureToUnitOfMeasureCommand;
 
-    public UnitOfMeasureServiceImpl(UnitOfMeasureRepository unitOfMeasureRepository, UnitOfMeasureToUnitOfMeasureCommand unitOfMeasureToUnitOfMeasureCommand) {
-        this.unitOfMeasureRepository = unitOfMeasureRepository;
+    public UnitOfMeasureServiceImpl(UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository,
+    		                        UnitOfMeasureToUnitOfMeasureCommand unitOfMeasureToUnitOfMeasureCommand) {
+        this.unitOfMeasureReactiveRepository = unitOfMeasureReactiveRepository;
         this.unitOfMeasureToUnitOfMeasureCommand = unitOfMeasureToUnitOfMeasureCommand;
     }
 
     @Override
-    public Set<UnitOfMeasureCommand> listAllUoms() {
-
-        return StreamSupport.stream(unitOfMeasureRepository.findAll()
+    public Flux<UnitOfMeasureCommand> listAllUoms() {
+    	/*The double colon (::) operator, also known as method reference operator in Java,
+    	 *is used to call a method by referring to it with the help of its class directly.
+    	 *They behave exactly as the lambda expressions. The only difference it has from
+    	 *lambda expressions is that this uses direct reference to the method by name instead
+    	 *of providing a delegate to the method.*/
+    	//unitOfMeasureToUnitOfMeasureCommand::convert is not called here, is called when the Flux is subscribed
+    	//.map() Transform the items emitted by this Flux by applying a synchronous function to each item.
+    	return unitOfMeasureReactiveRepository.findAll()
+    			                              .map(unitOfMeasureToUnitOfMeasureCommand::convert);
+    								  
+        /*return StreamSupport.stream(unitOfMeasureRepository.findAll()
                 .spliterator(), false)
                 .map(unitOfMeasureToUnitOfMeasureCommand::convert)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toSet());*/
     }
 }
